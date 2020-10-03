@@ -1,2 +1,1 @@
-, z_i):
-    candidate = self.state[:]
+len(expanded)

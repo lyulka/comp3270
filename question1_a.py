@@ -1,5 +1,4 @@
 import time
-# import curses
 
 class EightPuzzleID:
   def __init__(self, input_tiles):
@@ -9,188 +8,134 @@ class EightPuzzleID:
 
     self.state = input_tiles
     self.solutionSteps = []
-    # self.stdscr = curses.initscr()
 
   def solve(self):
     limit = 1
     exp_count = 0
+    steps = ""
+    backup = self.state
 
     while not self.solved() and exp_count < 1000000:
-      exp_count, dfs_stack = self.depthLimitedSolve(limit)
+      self.state = backup
+      exp_count, steps = self.depthLimitedSolve(limit)
       limit += 1
 
-    if exp_count > 1000000:
+    if exp_count >= 1000000:
       print(f"More than 1000000 nodes expanded and solution not found.")
     else:
-      self.solutionSteps = [step[1] for step in dfs_stack]
+      self.solutionSteps = steps
 
   # Return values: exp_count, dfs_stack
   def depthLimitedSolve(self, limit):
     depth = 0
     dfs_stack = list()
     expanded = set()
+    steps = "S"
+
+    dfs_stack.append([self.state, "S", 0])
 
     while True:
-      # time.sleep(0.7)
-      # self.stdscr.refresh()
-      # self.stdscr.addstr(0, 0, "Current state:")
-      # self.stdscr.addstr(1, 0, str(self.state[:3]))
-      # self.stdscr.addstr(2, 0, str(self.state[3:6]))
-      # self.stdscr.addstr(3, 0, str(self.state[6:9]))
-      # self.stdscr.addstr(4, 0, f"exp_count: {str(len(expanded))}")
+      if len(dfs_stack) == 0 or self.solved() or len(expanded) > 1000000:
+        return (len(expanded), steps)
 
-      # Add current state to expanded
+      cur_node = dfs_stack.pop()
+      self.state = cur_node[0]
+      steps = cur_node[1]
+      depth = cur_node[2]
+
+      print("Current node")
+      print(self.state[:3])
+      print(self.state[3:6])
+      print(self.state[6:9])
+
       expanded.add(tuple(self.state))
 
-      if len(expanded) > 1000000:
-        return(len(expanded), dfs_stack)
-
       if depth == limit:
-        self.state = dfs_stack.pop()[0]
-        depth -= 1
-
         continue
 
-      if self.solved():
-        return (len(expanded), dfs_stack)
+      successors = self.successors(steps, depth)
+      dfs_stack.extend(successors)
 
-      # Attempt to go deeper
-      successor = self.successor(expanded)
-
-      # All neighbors have been expanded
-      if (successor == None):
-        if len(dfs_stack) == 0:
-          return (len(expanded), dfs_stack)
-
-        self.state = dfs_stack.pop()[0]
-        depth -= 1
-        continue
-
-      # Append current state to backtrack to later
-      dfs_stack.append([self.state, successor[1]])
-
-      self.state = successor[0]
-
-      depth += 1
-
-  def successor(self, expanded):
+  def successors(self, steps, depth):
     zero_index = self.state.index(0)
 
     # Zero is the middle tile
     if (zero_index == 4):
-      candidate = self.moveUpCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 up')
+      res = []
+      if steps[-1] != "D": res.append([self.moveUpCandidate(zero_index), steps + 'U', depth + 1])
+      if steps[-1] != "U": res.append([self.moveDownCandidate(zero_index), steps + 'D', depth + 1])
+      if steps[-1] != "R": res.append([self.moveLeftCandidate(zero_index), steps + 'L', depth + 1])
+      if steps[-1] != "L": res.append([self.moveRightCandidate(zero_index), steps + 'R', depth + 1])
 
-      candidate = self.moveDownCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 down')
-
-      candidate = self.moveLeftCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 left')
-
-      candidate = self.moveRightCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 right')
+      return res
 
     # Zero is the top left tile
     elif (zero_index == 0):
-      candidate = self.moveDownCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 down')
-
-      candidate = self.moveRightCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 right')
+      res = []
+      if steps[-1] != "U": res.append([self.moveDownCandidate(zero_index), steps + 'D', depth + 1])
+      if steps[-1] != "L": res.append([self.moveRightCandidate(zero_index), steps + 'R', depth + 1])
+      
+      return res
     
     # Zero is the top right tile
     elif (zero_index == 2):
-      candidate = self.moveDownCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 down')
+      res = []
+      if steps[-1] != "U": res.append([self.moveDownCandidate(zero_index), steps + 'D', depth + 1])
+      if steps[-1] != "R": res.append([self.moveLeftCandidate(zero_index), steps + 'L', depth + 1])
 
-      candidate = self.moveLeftCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 left')
+      return res
 
     # Zero is the bottom left tile
     elif (zero_index == 6):
-      candidate = self.moveUpCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 up')
+      res = []
+      if steps[-1] != "D": res.append([self.moveUpCandidate(zero_index), steps + 'U', depth + 1])
+      if steps[-1] != "L": res.append([self.moveRightCandidate(zero_index), steps + 'R', depth + 1])
 
-      candidate = self.moveRightCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 right')
+      return res
 
     # Zero is the bottom right tile
     elif (zero_index == 8):
-      candidate = self.moveUpCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 up')
+      res = []
+      if steps[-1] != "D": res.append([self.moveUpCandidate(zero_index), steps + 'U', depth + 1])
+      if steps[-1] != "R": res.append([self.moveLeftCandidate(zero_index), steps + 'L', depth + 1])
 
-      candidate = self.moveLeftCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 left')
+      return res
 
     # Zero is the top middle tile:
     elif (zero_index == 1):
-      candidate = self.moveDownCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 down')
+      res = []
+      if steps[-1] != "U": res.append([self.moveDownCandidate(zero_index), steps + 'D', depth + 1])
+      if steps[-1] != "R": res.append([self.moveLeftCandidate(zero_index), steps + 'L', depth + 1])
+      if steps[-1] != "L": res.append([self.moveRightCandidate(zero_index), steps + 'R', depth + 1])
 
-      candidate = self.moveLeftCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 left')
-
-      candidate = self.moveRightCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 right')
+      return res
     
     # Zero is the middle left tile:
     elif (zero_index == 3):
-      candidate = self.moveUpCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 up')
+      res = []
+      if steps[-1] != "D": res.append([self.moveUpCandidate(zero_index), steps + 'U', depth + 1])
+      if steps[-1] != "U": res.append([self.moveDownCandidate(zero_index), steps + 'D', depth + 1])
+      if steps[-1] != "L": res.append([self.moveRightCandidate(zero_index), steps + 'R', depth + 1])
 
-      candidate = self.moveDownCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 down')
-
-      candidate = self.moveRightCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 right')
+      return res
 
     # Zero is the middle right tile:
     elif (zero_index == 5):
-      candidate = self.moveUpCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 up')
+      res = []
+      if steps[-1] != "D": res.append([self.moveUpCandidate(zero_index), steps + 'U', depth + 1])
+      if steps[-1] != "U": res.append([self.moveDownCandidate(zero_index), steps + 'D', depth + 1])
+      if steps[-1] != "R": res.append([self.moveLeftCandidate(zero_index), steps + 'L', depth + 1])
 
-      candidate = self.moveDownCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 down')
-
-      candidate = self.moveLeftCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 left')
+      return res
 
     # Zero is the bottom middle tile:
     else:
-      candidate = self.moveUpCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 up')
+      res = []
+      if steps[-1] != "D": res.append([self.moveUpCandidate(zero_index), steps + 'U', depth + 1])
+      if steps[-1] != "R": res.append([self.moveLeftCandidate(zero_index), steps + 'L', depth + 1])
+      if steps[-1] != "L": res.append([self.moveRightCandidate(zero_index), steps + 'R', depth + 1])
 
-      candidate = self.moveLeftCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 left')
-
-      candidate = self.moveRightCandidate(zero_index)
-      if tuple(candidate) not in expanded:
-        return (candidate, 'Move 0 right')
-
-    return None
+    return res
     
   def moveLeftCandidate(self, z_i):
     candidate = self.state[:]
@@ -213,7 +158,7 @@ class EightPuzzleID:
     return candidate
 
   def solved(self):
-    return self.state == [1, 2, 3, 8, 0, 4, 7, 6, 5]
+    return self.state == [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
 
 def main():
@@ -222,8 +167,7 @@ def main():
   puzzle.solve()
 
   print(f"Puzzle solved? {puzzle.solved()}")
-  for step in puzzle.solutionSteps:
-    print(step)
-  print(f"Steps needed to solve: {len(puzzle.solutionSteps)}")
+  print(f"Solution steps: {puzzle.solutionSteps}")
+  print(f"Steps needed to solve: {len(puzzle.solutionSteps) - 1}")
 
 main()
