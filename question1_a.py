@@ -1,4 +1,5 @@
 import time
+# import curses
 
 class EightPuzzleID:
   def __init__(self, input_tiles):
@@ -8,14 +9,14 @@ class EightPuzzleID:
 
     self.state = input_tiles
     self.solutionSteps = []
+    # self.stdscr = curses.initscr()
 
   def solve(self):
     limit = 1
     exp_count = 0
 
-    while not self.solved() \
-      and exp_count <= 1000000:
-      exp_count, dfs_stack = self.depthLimitedSolve(limit, exp_count)
+    while not self.solved() and exp_count < 1000000:
+      exp_count, dfs_stack = self.depthLimitedSolve(limit)
       limit += 1
 
     if exp_count > 1000000:
@@ -24,18 +25,25 @@ class EightPuzzleID:
       self.solutionSteps = [step[1] for step in dfs_stack]
 
   # Return values: exp_count, dfs_stack
-  def depthLimitedSolve(self, limit, exp_count_so_far):
+  def depthLimitedSolve(self, limit):
     depth = 0
     dfs_stack = list()
     expanded = set()
-    exp_count = exp_count_so_far
-    
+
     while True:
+      # time.sleep(0.7)
+      # self.stdscr.refresh()
+      # self.stdscr.addstr(0, 0, "Current state:")
+      # self.stdscr.addstr(1, 0, str(self.state[:3]))
+      # self.stdscr.addstr(2, 0, str(self.state[3:6]))
+      # self.stdscr.addstr(3, 0, str(self.state[6:9]))
+      # self.stdscr.addstr(4, 0, f"exp_count: {str(len(expanded))}")
+
       # Add current state to expanded
       expanded.add(tuple(self.state))
 
-      if exp_count > 1000000:
-        return(exp_count, dfs_stack)
+      if len(expanded) > 1000000:
+        return(len(expanded), dfs_stack)
 
       if depth == limit:
         self.state = dfs_stack.pop()[0]
@@ -44,7 +52,7 @@ class EightPuzzleID:
         continue
 
       if self.solved():
-        return (exp_count, dfs_stack)
+        return (len(expanded), dfs_stack)
 
       # Attempt to go deeper
       successor = self.successor(expanded)
@@ -52,7 +60,7 @@ class EightPuzzleID:
       # All neighbors have been expanded
       if (successor == None):
         if len(dfs_stack) == 0:
-          return (exp_count, dfs_stack)
+          return (len(expanded), dfs_stack)
 
         self.state = dfs_stack.pop()[0]
         depth -= 1
@@ -107,7 +115,7 @@ class EightPuzzleID:
         return (candidate, 'Move 0 left')
 
     # Zero is the bottom left tile
-    elif (zero_index == 3):
+    elif (zero_index == 6):
       candidate = self.moveUpCandidate(zero_index)
       if tuple(candidate) not in expanded:
         return (candidate, 'Move 0 up')
@@ -117,7 +125,7 @@ class EightPuzzleID:
         return (candidate, 'Move 0 right')
 
     # Zero is the bottom right tile
-    elif (zero_index == 3):
+    elif (zero_index == 8):
       candidate = self.moveUpCandidate(zero_index)
       if tuple(candidate) not in expanded:
         return (candidate, 'Move 0 up')
@@ -155,7 +163,7 @@ class EightPuzzleID:
         return (candidate, 'Move 0 right')
 
     # Zero is the middle right tile:
-    elif (zero_index == 3):
+    elif (zero_index == 5):
       candidate = self.moveUpCandidate(zero_index)
       if tuple(candidate) not in expanded:
         return (candidate, 'Move 0 up')
@@ -205,16 +213,17 @@ class EightPuzzleID:
     return candidate
 
   def solved(self):
-    return self.state == [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    return self.state == [1, 2, 3, 8, 0, 4, 7, 6, 5]
+
 
 def main():
-    input_tiles = input("Input a list of 9 unique numbers from 0 - 8:")
-    puzzle = EightPuzzleID(input_tiles)
-    puzzle.solve()
+  input_tiles = input("Input a list of 9 unique numbers from 0 - 8:")
+  puzzle = EightPuzzleID(input_tiles)
+  puzzle.solve()
 
-    print(f"Puzzle solved? {puzzle.solved()}")
-    for step in puzzle.solutionSteps:
-      print(step)
-    print(f"Steps needed to solve: {len(puzzle.solutionSteps)}")
+  print(f"Puzzle solved? {puzzle.solved()}")
+  for step in puzzle.solutionSteps:
+    print(step)
+  print(f"Steps needed to solve: {len(puzzle.solutionSteps)}")
 
 main()
