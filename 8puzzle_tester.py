@@ -28,9 +28,10 @@ def moveDownCandidate(state, z_i):
 
 while True:
   printState(state)
-  move = input("Enter a move: ")
+  moves = input("Enter a sequence of moves (UDLR): ")
 
-  if move == "U": state = moveUpCandidate(state, state.index('0'))
-  elif move == "D": state = moveDownCandidate(state, state.index('0'))
-  elif move == "L": state = moveLeftCandidate(state, state.index('0'))
-  else: state = moveRightCandidate(state, state.index('0'))
+  for move in list(moves):
+    if move == "U": state = moveUpCandidate(state, state.index('0'))
+    elif move == "D": state = moveDownCandidate(state, state.index('0'))
+    elif move == "L": state = moveLeftCandidate(state, state.index('0'))
+    else: state = moveRightCandidate(state, state.index('0'))
