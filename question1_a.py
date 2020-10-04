@@ -1,5 +1,3 @@
-import time
-
 class EightPuzzleID:
   def __init__(self, input_tiles):
     input_tiles = input_tiles.split(" ")
@@ -152,7 +150,7 @@ class EightPuzzleID:
     return candidate
 
   def solved(self):
-    return self.state == [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    return self.state == [1, 2, 3, 4, 5, 6, 7, 8, 0]
 
 
 def main():
@@ -161,7 +159,7 @@ def main():
   puzzle.solve()
 
   print(f"Puzzle solved? {puzzle.solved()}")
-  print(f"Solution steps: {puzzle.solutionSteps}")
-  print(f"Steps needed to solve: {len(puzzle.solutionSteps) - 1}")
+  print(f"Solution steps: {puzzle.solutionSteps[1:]}")
+  print(f"Moves needed to solve: {len(puzzle.solutionSteps) - 1}")
 
 main()
