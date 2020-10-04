@@ -11,16 +11,16 @@ class EightPuzzleID:
 
   def solve(self):
     limit = 1
-    exp_count = 0
+    expanded = 0
     steps = ""
     backup = self.state
 
-    while not self.solved() and exp_count < 1000000:
+    while not self.solved() and expanded < 1000000:
       self.state = backup
-      exp_count, steps = self.depthLimitedSolve(limit)
+      expanded, steps = self.depthLimitedSolve(limit)
       limit += 1
 
-    if exp_count >= 1000000:
+    if expanded >= 1000000:
       print(f"More than 1000000 nodes expanded and solution not found.")
     else:
       self.solutionSteps = steps
@@ -29,26 +29,20 @@ class EightPuzzleID:
   def depthLimitedSolve(self, limit):
     depth = 0
     dfs_stack = list()
-    expanded = set()
+    expanded = 0
     steps = "S"
 
     dfs_stack.append([self.state, "S", 0])
 
     while True:
-      if len(dfs_stack) == 0 or self.solved() or len(expanded) > 1000000:
-        return (len(expanded), steps)
+      if len(dfs_stack) == 0 or self.solved() or expanded > 1000000:
+        return (expanded, steps)
 
       cur_node = dfs_stack.pop()
       self.state = cur_node[0]
       steps = cur_node[1]
       depth = cur_node[2]
-
-      print("Current node")
-      print(self.state[:3])
-      print(self.state[3:6])
-      print(self.state[6:9])
-
-      expanded.add(tuple(self.state))
+      expanded += 1
 
       if depth == limit:
         continue
