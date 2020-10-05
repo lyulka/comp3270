@@ -16,7 +16,7 @@ def manhattanDistance(state, cost_so_far = 0):
     desired_x = state[i] % 3
     desired_y = state[i] // 3
 
-    count += abs((desired_x - actual_x) + (desired_y - actual_y))
+    count += abs(desired_x - actual_x) + abs(desired_y - actual_y)
 
   return cost_so_far + count
 
